@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classification Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* General Styling */
+        body {
+            background-image: url('https://cdn.shopify.com/s/files/1/0633/7039/5889/files/junkfood_widescreen.jpg?v=1647737356'); /* Sample food background */
+            background-size: cover;
+            background-position: center;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px; /* Add some padding to avoid content touching edges */
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.95); /* Slightly transparent white */
+            border-radius: 12px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            padding: 40px; 
+            max-width: 600px; /* Set maximum width for the container */
+            margin: auto; /* Center the container */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center content */
+            text-align: center; /* Center text inside the container */
+            overflow: auto; /* Allow scrolling if needed */
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        img {
+            max-width: 50%; /* Make image responsive */
+            height: auto; /* Maintain aspect ratio */
+            border-radius: 12px; /* Add border radius to the image */
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px; /* Space below the image */
+        }
+
+        .nutrition-info {
+            margin-top: 20px;
+            text-align: left; /* Align nutrition info to the left */
+            width: 100%;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: #d10c21;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            margin: 5px; /* Space between buttons */
+        }
+
+        .btn:hover {
+            background-color: #ddbb10;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin: 5px 0;
+            padding: 5px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Prediction Result</h2>
+        {% if img_data %}
+            <img src="data:image/jpeg;base64,{{ img_data }}" alt="Uploaded Image" />
+        {% endif %}
+        <h3>Predicted Food Item: {{ prediction }}</h3>
+        
+        {% if nutrition_info %}
+            <div class="nutrition-info">
+                <h4>Nutrition Information:</h4>
+                <p><strong>Calories:</strong> {{ nutrition_info['calories'] }}</p>
+                <p><strong>Total Weight:</strong> {{ nutrition_info['total_weight'] }}</p>
+                
+                {% if nutrition_info['diet_labels'] %}
+                    <p><strong>Diet Labels:</strong> {{ ', '.join(nutrition_info['diet_labels']) }}</p>
+                {% endif %}
+                
+                {% if nutrition_info['health_labels'] %}
+                    <p><strong>Health Labels:</strong> {{ ', '.join(nutrition_info['health_labels']) }}</p>
+                {% endif %}
+                
+                {% if nutrition_info['nutrients'] %}
+                    <p><strong>Nutrients:</strong></p>
+                    <ul>
+                        {% for nutrient, value in nutrition_info['nutrients'].items() %}
+                            <li><strong>{{ nutrient }}:</strong> {{ value }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No nutrient data available.</p>
+                {% endif %}
+            </div>
+        {% else %}
+            <form action="{{ url_for('fetch_nutrition_with_quantity') }}" method="POST">
+                <input type="hidden" name="food_item" value="{{ prediction }}">
+                <input type="hidden" name="img_data" value="{{ img_data }}">
+                <label for="quantity">Enter Quantity (grams):</label>
+                <input type="number" id="quantity" name="quantity" required>
+                <button type="submit" class="btn">Get Nutrition Info</button>
+            </form>
+        {% endif %}
+
+        <a href="{{ url_for('home') }}" class="btn">Classify another image</a>
+    </div>
+</body>
+</html>

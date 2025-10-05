@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Classification</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background-image: url('https://cdn.shopify.com/s/files/1/0633/7039/5889/files/junkfood_widescreen.jpg?v=1647737356');
+            background-size: cover;
+            background-position: center;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 600px;
+            margin: auto;
+            text-align: center;
+        }
+
+        .keyboard {
+            margin: 20px 0;
+        }
+
+
+
+        h2 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        form {
+            margin: 20px 0;
+        }
+
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 10px;
+        }
+
+        button {
+            padding: 12px 25px;
+            background-color: #d10c21;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #ddbb10;
+        }
+
+        #video {
+            border: 2px solid #d10c21;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        #cameraSection {
+            display: none;
+        }
+
+        .camera-btn {
+            background-color: #b30303;
+        }
+
+        .camera-btn:hover {
+            background-color: #ddbb10;
+        }
+
+        .capture-btn {
+            background-color: #ddbb10;
+        }
+
+        .capture-btn:hover {
+            background-color: #b30000;
+        }
+
+        .logout-btn {
+            display: block;
+            margin-top: 30px;
+            text-align: center;
+            color: #d10c21;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .logout-btn:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="keyboard">
+            <span class="key">N</span>
+            <span class="key">U</span>
+            <span class="key">T</span>
+            <span class="key">R</span>
+            <span class="key">I</span>
+            <span class="key">F</span>
+            <span class="key">O</span>
+            <span class="key">O</span>
+            <span class="key">D</span>
+        </div>
+        <h2>Welcome to NutriFood!</h2>
+        <p>Upload a food image or use your camera to get nutrition information.</p>
+
+        <!-- File Upload Form -->
+        <form action="/classify" method="POST" enctype="multipart/form-data">
+            <label for="file"><strong>Upload Food Image:</strong></label><br>
+            <input type="file" id="file" name="file" accept="image/*" required>
+            <br>
+            <button type="submit">Classify Image</button>
+        </form>
+
+        <h3>OR</h3>
+
+        <!-- Camera Capture Section -->
+        <button id="startCameraButton" class="camera-btn">Open Camera</button>
+        <p style="font-size: 12px; color: #666;">(Camera works on PCs and mobile devices)</p>
+        
+        <div id="cameraSection">
+            <video id="video" width="320" height="240" autoplay></video>
+            <br>
+            <button id="captureButton" class="capture-btn">Capture & Classify</button>
+            <button id="closeCameraButton" class="btn">Close Camera</button>
+        </div>
+        
+        <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+
+        <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+        
+        <script>
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            const startCameraButton = document.getElementById('startCameraButton');
+            const captureButton = document.getElementById('captureButton');
+            const closeCameraButton = document.getElementById('closeCameraButton');
+            const cameraSection = document.getElementById('cameraSection');
+            let stream = null;
+
+            // Function to start camera
+            function startCamera() {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(mediaStream) {
+                        stream = mediaStream;
+                        video.srcObject = stream;
+                        cameraSection.style.display = 'block';
+                        startCameraButton.style.display = 'none';
+                    })
+                    .catch(function(err) {
+                        console.error("Error accessing camera: ", err);
+                        alert("Could not access camera. Please check your permissions and make sure you're using HTTPS.");
+                    });
+            }
+
+            // Function to stop camera
+            function stopCamera() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                }
+                cameraSection.style.display = 'none';
+                startCameraButton.style.display = 'inline-block';
+            }
+
+            // Event listeners
+            startCameraButton.addEventListener('click', startCamera);
+            
+            closeCameraButton.addEventListener('click', function() {
+                stopCamera();
+            });
+
+            captureButton.addEventListener('click', function() {
+                if (!stream) {
+                    alert("Please open the camera first!");
+                    return;
+                }
+
+                // Capture image from video
+                context.drawImage(video, 0, 0, 320, 240);
+                const imageData = canvas.toDataURL('image/jpeg');
+
+                // Show loading state
+                captureButton.textContent = 'Classifying...';
+                captureButton.disabled = true;
+
+                // Send to server for classification
+                fetch('/classify-camera', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ image: imageData })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.prediction) {
+                        // Create a form to submit to result page
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '/fetch_nutrition_with_quantity';
+                        
+                        const predictionInput = document.createElement('input');
+                        predictionInput.type = 'hidden';
+                        predictionInput.name = 'food_item';
+                        predictionInput.value = data.prediction;
+                        
+                        const quantityInput = document.createElement('input');
+                        quantityInput.type = 'hidden';
+                        quantityInput.name = 'quantity';
+                        quantityInput.value = '100'; // Default quantity
+                        
+                        const imgInput = document.createElement('input');
+                        imgInput.type = 'hidden';
+                        imgInput.name = 'img_data';
+                        imgInput.value = imageData;
+                        
+                        form.appendChild(predictionInput);
+                        form.appendChild(quantityInput);
+                        form.appendChild(imgInput);
+                        
+                        document.body.appendChild(form);
+                        form.submit();
+                    } else {
+                        alert("Classification failed: " + (data.error || "Unknown error"));
+                        captureButton.textContent = 'Capture & Classify';
+                        captureButton.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("An error occurred during classification.");
+                    captureButton.textContent = 'Capture & Classify';
+                    captureButton.disabled = false;
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>

@@ -1,0 +1,178 @@
+
+body {
+    background-image: url('https://cdn.shopify.com/s/files/1/0633/7039/5889/files/junkfood_widescreen.jpg?v=1647737356'); /* Sample food background */
+    background-size: cover;
+    background-position: center;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 40px; 
+    border-radius: 12px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    width: 700px;
+    max-width: 90%;
+    text-align: center;
+    height: auto;
+}
+
+.keyboard {
+    display: inline-block;
+    margin-bottom: 20px;
+    font-variation-settings: 'wght' 550; 
+    font-weight: 550;
+}
+
+.key {
+    font-size: 6vw;
+    display: inline-block;
+    letter-spacing: -0.5vw;
+    transition: transform 0.2s;
+}
+
+/* Animation keyframes */
+@keyframes pressDown1 {
+    30%, 40%, 100% {
+        transform: translateY(0);
+    }   
+    125% {
+        transform: translateY(10px);
+    }
+}
+
+@keyframes pressDown2 {
+    70%, 80%, 100% {
+        transform: translateY(0);
+    }
+    15% {
+        transform: translateY(15px);
+    }
+}
+
+
+.key:nth-child(1) {
+    animation: pressDown2 4s infinite;
+}
+
+.key:nth-child(2) {
+    animation: pressDown2 5s infinite;
+}
+
+.key:nth-child(3) {
+    animation: pressDown1 1s infinite;
+}
+
+.key:nth-child(4) {
+    animation: pressDown2 2s infinite;
+}
+
+.key:nth-child(5) {
+    animation: pressDown2 5s infinite;
+
+} 
+
+.key:nth-child(6) {
+    animation: pressDown2 3s infinite;
+}
+.key:nth-child(7) {
+    animation: pressDown2 2s infinite;
+}
+.key:nth-child(8) {
+    animation: pressDown2 4s infinite;
+}
+.key:nth-child(9) {
+    animation: pressDown2 3s infinite;
+}
+
+
+
+h2 {
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    text-align: left;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+input[type="text"], input[type="password"], input[type="number"] {
+    padding: 12px; 
+    margin-bottom: 16px; 
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 16px;
+}
+
+button {
+    padding: 12px 20px;
+    background-color: #d10c21;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #ddbb10;
+}
+
+p {
+    margin-top: 20px;
+}
+
+a {
+    text-decoration: none;
+    color: #6c63ff;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+
+input[type="file"] {
+    width: 300px; 
+    height: 100px; 
+    border-radius: 10px; 
+    border: 2px solid #ddd; 
+    background-color: #f0f0f0; 
+    color: #333; 
+    font-size: 16px; 
+    padding: 7px;
+    margin: 10px auto; 
+    display: block; 
+    cursor: pointer; 
+}
+
+input[type="file"]::-webkit-file-upload-button {
+    display: none; 
+}
+
+input[type="file"]:hover {
+    background-color: #ddd; 
+}
+
+#fileName {
+    margin-top: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+}
