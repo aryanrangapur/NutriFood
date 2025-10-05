@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition Tracker - NutriFood</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background-image: url('https://cdn.shopify.com/s/files/1/0633/7039/5889/files/junkfood_widescreen.jpg?v=1647737356');
+            background-size: cover;
+            background-position: center;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .keyboard {
+            margin: 20px 0;
+        }
+
+
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            border-left: 4px solid #d10c21;
+        }
+
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #d10c21;
+        }
+
+        .section {
+            margin: 40px 0;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .food-entry {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .food-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-right: 15px;
+        }
+
+        .food-details {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .food-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .food-meta {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            background-color: #d10c21;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            margin: 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background-color: #ddbb10;
+        }
+
+        .home-btn {
+            background-color: #6c757d;
+        }
+
+        .home-btn:hover {
+            background-color: #545b62;
+        }
+
+        .nutrient-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+
+        .nutrient-fill {
+            background: #28a745;
+            height: 8px;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="keyboard">
+                <span class="key">N</span>
+                <span class="key">U</span>
+                <span class="key">T</span>
+                <span class="key">R</span>
+                <span class="key">I</span>
+                <span class="key">T</span>
+                <span class="key">R</span>
+                <span class="key">A</span>
+                <span class="key">C</span>
+                <span class="key">K</span>
+                <span class="key">E</span>
+                <span class="key">R</span>
+            </div>
+            <h1>Nutrition & Calorie Tracker</h1>
+            <p>Welcome, {{ username }}! Track your daily nutrition intake.</p>
+        </div>
+
+        <!-- Today's Summary -->
+        <div class="section">
+            <h2> Today's Nutrition Summary</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Calories</h3>
+                    <div class="stat-value">{{ today_totals.calories|round|int }}</div>
+                    <small>kcal</small>
+                </div>
+                <div class="stat-card">
+                    <h3>Protein</h3>
+                    <div class="stat-value">{{ today_totals.protein|round(1) }}</div>
+                    <small>grams</small>
+                </div>
+                <div class="stat-card">
+                    <h3>Carbohydrates</h3>
+                    <div class="stat-value">{{ today_totals.carbs|round(1) }}</div>
+                    <small>grams</small>
+                </div>
+                <div class="stat-card">
+                    <h3>Fat</h3>
+                    <div class="stat-value">{{ today_totals.fat|round(1) }}</div>
+                    <small>grams</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Overview -->
+        <div class="section">
+            <h2> Monthly Overview (Last 30 Days)</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Avg Daily Calories</h3>
+                    <div class="stat-value">{{ (monthly_totals.calories / 30)|round|int }}</div>
+                    <small>kcal/day</small>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Protein</h3>
+                    <div class="stat-value">{{ monthly_totals.protein|round(1) }}</div>
+                    <small>grams</small>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Carbs</h3>
+                    <div class="stat-value">{{ monthly_totals.carbs|round(1) }}</div>
+                    <small>grams</small>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Fat</h3>
+                    <div class="stat-value">{{ monthly_totals.fat|round(1) }}</div>
+                    <small>grams</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vitamin & Mineral Tracking -->
+        <div class="section">
+            <h2> Vitamins & Minerals Today</h2>
+            <table>
+                <tr>
+                    <th>Nutrient</th>
+                    <th>Amount</th>
+                    <th>Progress</th>
+                </tr>
+                <tr>
+                    <td>Fiber</td>
+                    <td>{{ today_totals.fiber|round(1) }}g</td>
+                    <td>
+                        <div class="nutrient-bar">
+                            <div class="nutrient-fill" style="width: {{ (today_totals.fiber / 25 * 100)|round }}%"></div>
+                        </div>
+                        {{ (today_totals.fiber / 25 * 100)|round }}% of daily goal
+                    </td>
+                </tr>
+                <tr>
+                    <td>Sugar</td>
+                    <td>{{ today_totals.sugar|round(1) }}g</td>
+                    <td>
+                        <div class="nutrient-bar">
+                            <div class="nutrient-fill" style="width: {{ (today_totals.sugar / 50 * 100)|round }}%; background: #dc3545;"></div>
+                        </div>
+                        {{ (today_totals.sugar / 50 * 100)|round }}% of daily limit
+                    </td>
+                </tr>
+                <tr>
+                    <td>Sodium</td>
+                    <td>{{ today_totals.sodium|round(1) }}mg</td>
+                    <td>
+                        <div class="nutrient-bar">
+                            <div class="nutrient-fill" style="width: {{ (today_totals.sodium / 2300 * 100)|round }}%"></div>
+                        </div>
+                        {{ (today_totals.sodium / 2300 * 100)|round }}% of daily limit
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Recent Entries -->
+        <div class="section">
+            <h2>Recent Food Entries</h2>
+            {% if recent_entries %}
+                {% for entry in recent_entries %}
+                <div class="food-entry">
+                    {% if entry.img_data %}
+                    <img src="data:image/jpeg;base64,{{ entry.img_data }}" alt="{{ entry.food_item }}" class="food-img">
+                    {% else %}
+                    <div class="food-img" style="background: #ddd; display: flex; align-items: center; justify-content: center;">
+                        🍕
+                    </div>
+                    {% endif %}
+                    <div class="food-details">
+                        <div class="food-name">{{ entry.food_item }}</div>
+                        <div class="food-meta">
+                            {{ entry.quantity }} • {{ entry.calories }} calories • 
+                            {{ entry.meal_type|title }} • {{ entry.date }}
+                        </div>
+                    </div>
+                    <a href="{{ url_for('delete_entry', entry_id=entry._id) }}" class="delete-btn" 
+                       onclick="return confirm('Are you sure you want to delete this entry?')">
+                        Delete
+                    </a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: #666; padding: 20px;">
+                    No food entries yet. Start by classifying some food!
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- Navigation -->
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="{{ url_for('home') }}" class="btn home-btn">Back to Home</a>
+            <a href="{{ url_for('logout') }}" class="btn" style="background: #e80404;"> Logout</a>
+        </div>
+    </div>
+</body>
+</html>
