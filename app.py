@@ -486,3 +486,6 @@ def get_fallback_nutrition(food_item, quantity):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+else:
+    # This is for Vercel serverless
+    application = app
