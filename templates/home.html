@@ -99,6 +99,19 @@
         .logout-btn:hover {
             text-decoration: underline;
         }
+
+        .btn {
+            background-color: #d10c21;
+            text-decoration: none;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 5px;
+            /* other styles */
+        }
+
+        .btn:hover {
+            background-color: #ddbb10;
+        }
     </style>
 </head>
 <body>
@@ -136,6 +149,12 @@
             <br>
             <button id="captureButton" class="capture-btn">Capture & Classify</button>
             <button id="closeCameraButton" class="btn">Close Camera</button>
+        </div>
+        <!-- Add this after the camera section -->
+        <div style="margin-top: 30px;">
+            <a href="{{ url_for('tracker') }}" class="btn">
+                 View Nutrition Tracker
+            </a>
         </div>
         
         <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
