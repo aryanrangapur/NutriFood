@@ -28,6 +28,149 @@ NUTRITIONIX_APP_ID = 'a2e74d94'
 NUTRITIONIX_API_KEY = '06ce70516d0251b185d31f4ef0540927'
 NUTRITIONIX_API_URL = 'https://trackapi.nutritionix.com/v2/natural/nutrients'
 
+
+# Add after your existing MongoDB connection
+try:
+    tracker_collection = db['tracker_entries']
+    print("✅ Tracker collection connected successfully!")
+except Exception as e:
+    print(f"❌ Tracker collection error: {e}")
+
+# Add these new routes after your existing routes
+
+@app.route('/add_to_tracker', methods=['POST'])
+def add_to_tracker():
+    if 'user' not in session:
+        return redirect(url_for('signin'))
+    
+    try:
+        food_item = request.form['food_item']
+        quantity = request.form['quantity']
+        calories = request.form['calories']
+        img_data = request.form.get('img_data', '')
+        
+        # Extract nutrients from form data
+        nutrients = {}
+        for key, value in request.form.items():
+            if key.startswith('nutrient_'):
+                nutrient_name = key.replace('nutrient_', '')
+                nutrients[nutrient_name] = value
+        
+        # Create tracker entry
+        tracker_entry = {
+            'username': session['user'],
+            'food_item': food_item,
+            'quantity': quantity,
+            'calories': calories,
+            'nutrients': nutrients,
+            'date': request.form.get('date', ''),
+            'meal_type': request.form.get('meal_type', 'lunch'),
+            'img_data': img_data,
+            'timestamp': request.form.get('timestamp', '')
+        }
+        
+        tracker_collection.insert_one(tracker_entry)
+        print(f"✅ Added {food_item} to tracker for {session['user']}")
+        
+        return redirect(url_for('tracker'))
+        
+    except Exception as e:
+        print(f"❌ Error adding to tracker: {e}")
+        return redirect(url_for('home'))
+
+@app.route('/tracker')
+def tracker():
+    if 'user' not in session:
+        return redirect(url_for('signin'))
+    
+    # Get today's entries
+    from datetime import datetime, timedelta
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    today_entries = list(tracker_collection.find({
+        'username': session['user'],
+        'date': today
+    }))
+    
+    # Get monthly data (last 30 days)
+    monthly_entries = list(tracker_collection.find({
+        'username': session['user'],
+        'date': {'$gte': (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')}
+    }))
+    
+    # Calculate totals
+    today_totals = calculate_totals(today_entries)
+    monthly_totals = calculate_totals(monthly_entries)
+    
+    # Get recent entries for display
+    recent_entries = list(tracker_collection.find(
+        {'username': session['user']}
+    ).sort('timestamp', -1).limit(10))
+    
+    return render_template('tracker.html', 
+                         username=session['user'],
+                         today_entries=today_entries,
+                         monthly_entries=monthly_entries,
+                         today_totals=today_totals,
+                         monthly_totals=monthly_totals,
+                         recent_entries=recent_entries)
+
+@app.route('/delete_entry/<entry_id>')
+def delete_entry(entry_id):
+    if 'user' not in session:
+        return redirect(url_for('signin'))
+    
+    from bson.objectid import ObjectId
+    tracker_collection.delete_one({'_id': ObjectId(entry_id), 'username': session['user']})
+    return redirect(url_for('tracker'))
+
+def calculate_totals(entries):
+    totals = {
+        'calories': 0,
+        'protein': 0,
+        'carbs': 0,
+        'fat': 0,
+        'fiber': 0,
+        'sugar': 0,
+        'sodium': 0,
+        'calcium': 0,
+        'iron': 0,
+        'vitamin_c': 0,
+        'vitamin_a': 0
+    }
+    
+    for entry in entries:
+        totals['calories'] += float(entry.get('calories', 0))
+        
+        nutrients = entry.get('nutrients', {})
+        for nutrient, value in nutrients.items():
+            nutrient_lower = nutrient.lower()
+            value_clean = float(''.join(c for c in str(value) if c.isdigit() or c == '.'))
+            
+            if 'protein' in nutrient_lower:
+                totals['protein'] += value_clean
+            elif 'carb' in nutrient_lower:
+                totals['carbs'] += value_clean
+            elif 'fat' in nutrient_lower and 'saturated' not in nutrient_lower:
+                totals['fat'] += value_clean
+            elif 'fiber' in nutrient_lower:
+                totals['fiber'] += value_clean
+            elif 'sugar' in nutrient_lower:
+                totals['sugar'] += value_clean
+            elif 'sodium' in nutrient_lower:
+                totals['sodium'] += value_clean
+            elif 'calcium' in nutrient_lower:
+                totals['calcium'] += value_clean
+            elif 'iron' in nutrient_lower:
+                totals['iron'] += value_clean
+            elif 'vitamin c' in nutrient_lower:
+                totals['vitamin_c'] += value_clean
+            elif 'vitamin a' in nutrient_lower:
+                totals['vitamin_a'] += value_clean
+    
+    return totals
+
+
 def custom_binary_crossentropy(*args, **kwargs):
     return tf.keras.losses.BinaryCrossentropy()
 
@@ -343,3 +486,6 @@ def get_fallback_nutrition(food_item, quantity):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+else:
+    # This is for Vercel serverless
+    application = app

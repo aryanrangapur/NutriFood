@@ -6,51 +6,50 @@
     <title>Classification Result</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        /* General Styling */
         body {
-            background-image: url('https://cdn.shopify.com/s/files/1/0633/7039/5889/files/junkfood_widescreen.jpg?v=1647737356'); /* Sample food background */
+            background-image: url('https://cdn.shopify.com/s/files/1/0633/7039/5889/files/junkfood_widescreen.jpg?v=1647737356');
             background-size: cover;
             background-position: center;
             font-family: 'Poppins', sans-serif;
             margin: 0;
-            padding: 20px; /* Add some padding to avoid content touching edges */
+            padding: 20px;
         }
 
         .container {
-            background-color: rgba(255, 255, 255, 0.95); /* Slightly transparent white */
+            background-color: rgba(255, 255, 255, 0.95);
             border-radius: 12px;
             box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-            padding: 40px; 
-            max-width: 600px; /* Set maximum width for the container */
-            margin: auto; /* Center the container */
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* Center content */
-            text-align: center; /* Center text inside the container */
-            overflow: auto; /* Allow scrolling if needed */
+            padding: 40px;
+            max-width: 800px;
+            margin: auto;
+            text-align: center;
         }
 
         h2 {
             margin-bottom: 20px;
             font-weight: bold;
+            color: #333;
         }
 
         img {
-            max-width: 50%; /* Make image responsive */
-            height: auto; /* Maintain aspect ratio */
-            border-radius: 12px; /* Add border radius to the image */
+            max-width: 50%;
+            height: auto;
+            border-radius: 12px;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px; /* Space below the image */
+            margin-bottom: 20px;
         }
 
         .nutrition-info {
             margin-top: 20px;
-            text-align: left; /* Align nutrition info to the left */
+            text-align: left;
             width: 100%;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
         }
 
         .btn {
-            padding: 10px 20px;
+            padding: 12px 25px;
             background-color: #d10c21;
             color: white;
             border: none;
@@ -58,15 +57,21 @@
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.3s ease;
-            margin: 5px; /* Space between buttons */
+            margin: 5px;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .btn:hover {
             background-color: #ddbb10;
         }
 
-        .hidden {
-            display: none;
+        .tracker-btn {
+            background-color: #ddbb10;
+        }
+
+        .tracker-btn:hover {
+            background-color: #ea0707;
         }
 
         ul {
@@ -75,10 +80,21 @@
         }
 
         li {
-            margin: 5px 0;
-            padding: 5px;
-            background-color: #f8f9fa;
+            margin: 8px 0;
+            padding: 8px;
+            background-color: white;
             border-radius: 5px;
+            border-left: 4px solid #d10c21;
+        }
+
+        .meal-type-selector {
+            margin: 15px 0;
+        }
+
+        .meal-type-selector select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
         }
     </style>
 </head>
@@ -88,7 +104,7 @@
         {% if img_data %}
             <img src="data:image/jpeg;base64,{{ img_data }}" alt="Uploaded Image" />
         {% endif %}
-        <h3>Predicted Food Item: {{ prediction }}</h3>
+        <h3>Predicted Food Item: <span style="color: #d10c21;">{{ prediction }}</span></h3>
         
         {% if nutrition_info %}
             <div class="nutrition-info">
@@ -114,18 +130,63 @@
                 {% else %}
                     <p>No nutrient data available.</p>
                 {% endif %}
+                
+                <!-- Add to Tracker Form -->
+                <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid #ddd;">
+                    <h4>Add to Nutrition Tracker</h4>
+                    <form action="{{ url_for('add_to_tracker') }}" method="POST">
+                        <input type="hidden" name="food_item" value="{{ prediction }}">
+                        <input type="hidden" name="quantity" value="{{ nutrition_info['total_weight'].replace('g', '') }}">
+                        <input type="hidden" name="calories" value="{{ nutrition_info['calories'] }}">
+                        <input type="hidden" name="img_data" value="{{ img_data }}">
+                        
+                        <!-- Store nutrients as hidden fields -->
+                        {% for nutrient, value in nutrition_info['nutrients'].items() %}
+                            <input type="hidden" name="nutrient_{{ nutrient }}" value="{{ value }}">
+                        {% endfor %}
+                        
+                        <div class="meal-type-selector">
+                            <label for="meal_type"><strong>Meal Type:</strong></label>
+                            <select id="meal_type" name="meal_type" required>
+                                <option value="breakfast">Breakfast</option>
+                                <option value="lunch" selected>Lunch</option>
+                                <option value="dinner">Dinner</option>
+                                <option value="snack">Snack</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin: 15px 0;">
+                            <label for="date"><strong>Date:</strong></label>
+                            <input type="date" id="date" name="date" value="{{ today }}" required>
+                        </div>
+                        
+                        <input type="hidden" name="timestamp" value="{{ now }}">
+                        
+                        <button type="submit" class="btn tracker-btn">
+                            Add to Nutrition Tracker
+                        </button>
+                    </form>
+                </div>
             </div>
         {% else %}
             <form action="{{ url_for('fetch_nutrition_with_quantity') }}" method="POST">
                 <input type="hidden" name="food_item" value="{{ prediction }}">
                 <input type="hidden" name="img_data" value="{{ img_data }}">
                 <label for="quantity">Enter Quantity (grams):</label>
-                <input type="number" id="quantity" name="quantity" required>
+                <input type="number" id="quantity" name="quantity" required value="100">
                 <button type="submit" class="btn">Get Nutrition Info</button>
             </form>
         {% endif %}
 
-        <a href="{{ url_for('home') }}" class="btn">Classify another image</a>
+        <div style="margin-top: 30px;">
+            <a href="{{ url_for('home') }}" class="btn">Classify Another Image</a>
+            <a href="{{ url_for('tracker') }}" class="btn tracker-btn"> View Nutrition Tracker</a>
+        </div>
     </div>
+
+    <script>
+        // Set today's date as default
+        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+    </script>
 </body>
 </html>
