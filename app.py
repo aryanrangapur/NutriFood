@@ -8,24 +8,25 @@ import numpy as np
 import base64
 import io
 import requests
+from decouple import config
 
 app = Flask(__name__)
-app.secret_key = 'sdvnud747wqyf7t4qr67t7fqwegfewfg3w63rtfw'  
+app.secret_key = config('SECRET_KEY')
 
 class_names = ["Pizza", "Steak"]
 
-# MongoDB connection
 try:
-    client = MongoClient("mongodb+srv://aryan:aryan@nutrifood.xw6mdsn.mongodb.net/")
+    client = MongoClient(config('MONGO_URI'))
     db = client['user_db']
     users_collection = db['users']
+    tracker_collection = db['tracker_entries']
     print("✅ MongoDB connected successfully!")
 except Exception as e:
     print(f"❌ MongoDB connection error: {e}")
 
-# Nutritionix API credentials
-NUTRITIONIX_APP_ID = 'a2e74d94'
-NUTRITIONIX_API_KEY = '06ce70516d0251b185d31f4ef0540927'
+# Nutritionix credentials
+NUTRITIONIX_APP_ID = config('NUTRITIONIX_APP_ID')
+NUTRITIONIX_API_KEY = config('NUTRITIONIX_API_KEY')
 NUTRITIONIX_API_URL = 'https://trackapi.nutritionix.com/v2/natural/nutrients'
 
 
