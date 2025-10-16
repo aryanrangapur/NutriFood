@@ -10,7 +10,7 @@ import io
 import requests
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'  # Change this!
+app.secret_key = 'sdvnud747wqyf7t4qr67t7fqwegfewfg3w63rtfw'  
 
 class_names = ["Pizza", "Steak"]
 
