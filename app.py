@@ -11,6 +11,7 @@ import requests
 from decouple import config
 
 app = Flask(__name__)
+print("SECRET_KEY in env:", os.getenv("SECRET_KEY"))
 app.secret_key = config('SECRET_KEY')
 
 class_names = ["Pizza", "Steak"]
