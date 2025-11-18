@@ -191,4 +191,4 @@ The application is deployed on Railway with the following configuration:
 
 ## Live Demo
 
-Access the live application at: https://nutrifood-production.up.railway.app/
+Access the live application at: [https://nutrifood.onrender.com/](https://nutrifood.onrender.com/)
