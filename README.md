@@ -30,7 +30,7 @@ NutriFood is a web application that uses machine learning to classify food image
 ### Deployment
 - **Platform**: Railway
 - **Port**: 8080
-- **URL**: https://nutrifood-production.up.railway.app/
+- **URL**: [https://nutrifood.onrender.com/](https://nutrifood.onrender.com/)
 
 ## Project Structure
 
